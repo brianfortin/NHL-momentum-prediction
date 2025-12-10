@@ -4,19 +4,20 @@
 
 **Date:** November 2025
 
-**Purpose:** Create an end-to-end automated pipeline with custom features to make a model with well-reasoned predictions about game outcome.
+**Description:** An end-to-end automated pipeline with custom feature variables to make an accurate model and find variables that most influence Bruins game outcome.
 
 ---
 
 ## Overview
 
-Using the Boston Bruins (2022–2023 and 2023–2024 seasons) as a case study, this pipeline takes in raw game logs from the NHL API, defines performance features, and trains a predictive model to outperform a standard baseline.
+Using the Boston Bruins (2022–2023 and 2023–2024 seasons) as a case study, this pipeline takes in raw game logs from the NHL API, defines performance features, and trains a predictive model to outperform a logisitic regression baseline.
 
-This machine-learning project quantifies the impact of team-level variables on NHL game outcomes including *Team Momentum*, *Opponent Strength*, and *Schedule Fatigue*.
+This project specifically quantifies the impact of team-level variables on NHL game outcomes including *Team Momentum*, *Opponent Strength*, and *Schedule Fatigue*.
 
 ---
 
 ## Summary
+
 * **Objective:** Predict $P(\text{Win})$ using dynamic features rather than static player stats.
 * **Best Model:** XGBoost Classifier (Time-Series Split).
 * **Key Result:** Achieved **59.4% Accuracy** (*AUC*: 0.606), outperforming the desired ~55% sports betting baseline.
@@ -51,14 +52,14 @@ The rationale was that the Bruins are a strong team with a history of winning st
 
 ## Methodology
 
-To rigorously benchmark performance, I evaluated two modeling strategies, *Logistic Regression* and *XGBoost*, using the **identical feature set defined above**.
+To benchmark performance, I evaluated two modeling strategies, *Logistic Regression* and *XGBoost*, using the **identical feature set defined above**.
 
 **Validation Strategy**
 I utilized a **Time-Series Split** (training: 2022-23, testing: 2023-24) to simulate real-world forecasting where future outcomes are unknown.
 Unlike using simple random sampling, this approach exposes the model to **concept drift** (i.e., roster turnover between seasons), ensuring the reported accuracy reflects true predictive power rather than just interpolation.
 
 **Why XGBoost?**
-*Logistic Regression* has a major caveat: it assumes linear relationships between variables, which is an unrealistic assumption when applied to complex sports data.
+*Logistic Regression* assumes linear relationships between variables, which is an unrealistic assumption when applied to complex sports data.
 For example, a variable such as schedule fatigue may compound exponentially against playoff-level teams.
 
 I selected *XGBoost* because it is a gradient-boosting method that builds a collection of decision trees.
@@ -74,23 +75,36 @@ All results may be repeated by running the *Jupyter Notebook* file `nhl_momentum
 
 ## Results
 
-### Model Performance Comparison
+### Modeling
+I compared the *Logistic Regression* (linear baseline) model against the *XGBoost* (gradient-boosted trees) model.
+The results demonstrated that game outcomes are affected by non-linear interactions between *Team Momentum*, *Opponent Strength*, and *Schedule Fatigue*, which the linear model failed to fully capture.
 
+### Model Performance Comparison
 | Model                   | Accuracy | AUC   | Notes                                                                                                                         |
 |:------------------------|:---------|:------|:------------------------------------------------------------------------------------------------------------------------------|
 | **Logistic Regression** | 56.4%    | N/A   | Struggled with non-linear relationships.                                                                                      |
 | **XGBoost**             | 59.4%    | 0.606 | Tree-based logic successfully modeled non-linear patterns, achieving **3% more accuracy** over the logistic regression model. |
 
-### Feature Importance
+### Feature Discussion
 The *XGBoost* feature importance analysis revealed that ***Home Ice Advantage*** and ***Team Momentum*** are the primary drivers of win probability.
 
 ![Feature Importance](feature_importance.png)
 
-### Modeling
-I compared the *Logistic Regression* (linear baseline) model against the *XGBoost* (gradient-boosted trees) model.
-The results demonstrated that game outcomes are affected by non-linear interactions between *Team Momentum*, *Opponent Strength*, and *Schedule Fatigue*, which the linear model failed to fully capture.
+These results make a lot of sense, as ***Home Ice Advantage*** is a known advantage which has been analyzed many times before.
+Surprisingly, however, ***Home Ice Advantage*** was not relevant across all NHL teams in 2023 and 2024 (https://apnews.com/article/stanley-cup-playoffs-2025-nhl-2351f90788649d2d7bda2577b7eda78f).
+It is harder to compare my definition of ***Team Momentum***, as it is custom coded.
+Intuitively, if the Bruins played well in the last 5 games, there is a good chance that streak will continue.
 
-### Conclusion
+The other variables: ***Win Streak***, ***Opponent Strength***, and ***Schedule Fatigue*** do have importance but not to the same extent as the aforementioned.
+Though ***Team Momentum*** and ***Win Streak*** appear similar at first glance, it is actually ***Team Momentum*** that does a better job at explaining if the Bruins will win a given game.
+My more custom definition, ***Team Momentum***, is nearly twice as important as judged by the model than ***Win Streak***.
+The lack of importance assigned to ***Opponent Strength*** and ***Schedule Fatigue*** was expected.
+Teams that made it to playoffs last year change seldom do as well, say for the best few teams.
+Lastly, ***Schedule Fatigue***, the least important measured variable in the model, can be explained simply.
+If the Bruins are not playing, they are likely practicing.
+Back-to-back games are normal and not an uncommon or unexpected part of the team's schedule.
+
+## Conclusion
 
 The project results challenged the initial hypothesis. In reality, ***Home Ice Advantage*** (0.32) is the strongest predictor of winning, while ***Team Momentum*** is second (0.28).
 
